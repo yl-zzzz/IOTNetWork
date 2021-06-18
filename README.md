@@ -11,3 +11,11 @@
  # 2. 시스템 구조
  지하철역 이름, 초미세먼지 농도, 실시간 시간까지 볼 수 있는 모니터링 시스템의 시스템 구조를 보여준다.<br/> 본 시스템은 센서, MQTT Broker, Node. js, Mongo DB, MQTT Publisher, MQTT Subscriber, Web UI로 구성된다.
 ![image01](https://user-images.githubusercontent.com/71144019/122519454-70e44780-d04d-11eb-9634-3e273ed42622.png)
+
+# 3. 프로젝트 과정
+## 1. 공공 데이터 포털에서 실시간 데이터 발급 
+## 2. MongoDB에 데이터 저장
+## 3. Publish서버가 토픽 발행하고 Broker 서버로 전달
+## 4. Subscriber가 토픽 구독하면 Broker 서버가 데이터 전달
+## 5. html에 실시간 정보 출력
+ 
