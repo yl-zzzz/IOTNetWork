@@ -1,0 +1,147 @@
+package practice_mqtt;
+
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+
+public class MqttPublisher_API{
+	static MqttClient sampleClient;
+		
+    public static void main(String[] args) {
+    	connectBroker();//브로커와 연결한다
+    	while(true) {
+    		String[] SubwayStPmq_data  = get_SubwayStPmq_data();
+        	
+        	
+        	publish_data("StationN", "{\"StationN\": \""+ SubwayStPmq_data[0]+" \" }");
+        	publish_data("PMq", "{\"PMq\": "+SubwayStPmq_data[1]+"}");
+        	publish_data("CheckDate", "{\"CheckDate\": \""+SubwayStPmq_data[2]+"\"}");
+        	try {
+        		Thread.sleep(10000);//10초 단위로 데이터 퍼블리싱해준다
+        	}catch(InterruptedException e) {
+        		e.printStackTrace();
+        	}
+    	}
+    }
+    
+    public static void connectBroker() {
+        String broker = "tcp://127.0.0.1:1883";
+        String clientId  = "practice";
+        MemoryPersistence persistence = new MemoryPersistence();
+        try {
+            sampleClient = new MqttClient(broker, clientId, persistence);
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(true);
+            System.out.println("Connecting to broker: "+broker);
+            sampleClient.connect(connOpts);
+            System.out.println("Connected");
+        } catch(MqttException me) {
+            System.out.println("reason "+me.getReasonCode());
+            System.out.println("msg "+me.getMessage());
+            System.out.println("loc "+me.getLocalizedMessage());
+            System.out.println("cause "+me.getCause());
+            System.out.println("excep "+me);
+            me.printStackTrace();
+        }
+    }
+    
+    public static void publish_data(String topic_input, String data) {
+        String topic = topic_input;
+        int qos = 0;
+        try {
+            System.out.println("Publishing message: "+data);
+            sampleClient.publish(topic, data.getBytes(), qos, false);
+            System.out.println("Message published");
+        } catch(MqttException me) {
+            System.out.println("reason "+me.getReasonCode());
+            System.out.println("msg "+me.getMessage());
+            System.out.println("loc "+me.getLocalizedMessage());
+            System.out.println("cause "+me.getCause());
+            System.out.println("excep "+me);
+            me.printStackTrace();
+        }
+    }
+    
+    public static String[] get_SubwayStPmq_data() {
+    	Date current = new Date(System.currentTimeMillis());
+    	SimpleDateFormat d_format = new SimpleDateFormat("yyyyMMddHHmmss"); 
+    	//System.out.println(d_format.format(current));
+    	String date = d_format.format(current).substring(0,8);
+    	String time = d_format.format(current).substring(8,10);
+    	
+    	String url = "http://openapi.seoul.go.kr:8088"
+    			+ "/715654434a796c7a3737435949684e"
+    			+ "/xml/airPolutionInfo/1/1";
+    	
+		String StationN = "";//역이름
+		String PMq = "";//초미세먼지 농도
+		String CheckDate="";//현재 시간
+				
+    	Document doc = null;
+
+		try {
+			doc = Jsoup.connect(url).get();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		//System.out.println(doc);
+		
+		Elements elements = doc.select("row");
+		for (Element e : elements) {
+			if (e.select("AREA_NM").text().equals("청량리")) {
+				StationN = e.select("AREA_NM").text();
+			}
+			if (e.select("AREA_NM").text().equals("청량리")) {
+				PMq = e.select("PMq").text();
+			}
+			if (e.select("AREA_NM").text().equals("청량리")) {
+				CheckDate = e.select("CHECKDATE").text();
+			}
+		}
+		String[] out = {StationN, PMq, CheckDate};
+    	return out;
+    }
+    
+    
+   /* public static String get_pm_data() {
+    	String url = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/"
+    			+ "getCtprvnRltmMesureDnsty"
+    			+ "?serviceKey=X7VbxDZo%2F8scobmS5QUIF2h6s%2F2FVu4HbJ%2BSa2x31kXEuRx8j48OX79kZ4kGJ9F6jl7ef6Haq4SD2sK8t3Entw%3D%3D"
+    			+ "&returnType=xml"
+    			+ "&numOfRows=100"
+    			+ "&pageNo=1"
+    			+ "&sidoName=%EA%B0%95%EC%9B%90"
+    			+ "&ver=1.0"; //ũ�Ѹ��� url����
+		String value = "";
+    	Document doc = null;
+		
+		// 2.�Ľ�
+		try {
+			doc = Jsoup.connect(url).get();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		//System.out.println(doc);
+		
+		Elements elements = doc.select("item");
+		for (Element e : elements) {
+			if (e.select("stationName").text().equals("���絿")) {
+				value = e.select("pm10Value").text();
+			}
+		}
+    	return value;
+    }*/
+}
+
+
+// written by Sang-woo Lee (http://210.115.227.106:8080/cv_sw)
