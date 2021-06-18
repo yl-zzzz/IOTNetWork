@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<meta charset="UTF-8">
+
+<title>MQTT Monitoring Service</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+	var socket = io.connect();
+	var timer = null;
+	$(document).ready(function(){
+		socket.on("socket_up_StationN", function(data){
+			data = JSON.parse(data);
+			$(".mqttlist_StationN").html('<li>'+data.StationN+"역"+'</li>');
+		});
+		socket.on("socket_up_PMq", function(data){
+			data = JSON.parse(data);
+			$(".mqttlist_PMq").html('<li>'+data.PMq+'%.'+'</li>');
+		});
+		socket.on("socket_up_CheckDate", function(data){
+			data = JSON.parse(data);
+			$(".mqttlist_CheckDate").html('<li>'+data.CheckDate+' 현재 시간 입니다.'+'</li>');
+		});
+		if(timer==null){
+			timer = window.setInterval("timer_1()", 1000);
+		}
+	});
+	function timer_1(){
+		socket.emit("socket_evt_update", JSON.stringify({}));
+	}
+</script>
+</head>
+<body>
+MQTT Mornitoring Service<br>
+현재 청량리역 승강장에서의 초미세먼지 농도입니다.
+
+	<div id="msg">
+		<div id="mqtt_logs">
+			<ul class="mqttlist_StationN"></ul>
+			<ul class="mqttlist_PMq"></ul>
+			<ul class="mqttlist_CheckDate"></ul>
+		</div>
+	</div>
+</body>
+</html>
+
