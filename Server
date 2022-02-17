@@ -15,6 +15,7 @@
  var port = normalizePort(process.env.PORT || '3000');
  app.set('port', port);
  
+//서버 초기화
  /**
   * Create HTTP server.
   */
